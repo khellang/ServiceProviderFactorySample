@@ -7,37 +7,30 @@ namespace ServiceProviderFactorySample
 {
     public static class StructureMapExtensions
     {
-        public static IServiceCollection AddStructureMap(this IServiceCollection services, Action<ConfigurationExpression> configure = null)
+        public static IServiceCollection AddStructureMap(this IServiceCollection services)
         {
-            return services.AddSingleton<IServiceProviderFactory<IContainer>>(new StructureMapServiceProviderFactory(configure));
+            return services.AddSingleton<IServiceProviderFactory<Registry>>(new StructureMapServiceProviderFactory());
         }
 
-        public static IWebHostBuilder UseStructureMap(this IWebHostBuilder builder, Action<ConfigurationExpression> configure = null)
+        public static IWebHostBuilder UseStructureMap(this IWebHostBuilder builder)
         {
-            return builder.ConfigureServices(services => services.AddStructureMap(configure));
+            return builder.ConfigureServices(services => services.AddStructureMap());
         }
 
-        private class StructureMapServiceProviderFactory : IServiceProviderFactory<IContainer>
+        private class StructureMapServiceProviderFactory : IServiceProviderFactory<Registry>
         {
-            public StructureMapServiceProviderFactory(Action<ConfigurationExpression> configure)
+            public Registry CreateBuilder(IServiceCollection services)
             {
-                Configure = configure ?? (config => { });
+                var registry = new Registry();
+
+                registry.Populate(services);
+
+                return registry;
             }
 
-            private Action<ConfigurationExpression> Configure { get; }
-
-            public IContainer CreateBuilder(IServiceCollection services)
+            public IServiceProvider CreateServiceProvider(Registry registry)
             {
-                var container = new Container(Configure);
-
-                container.Populate(services);
-
-                return container;
-            }
-
-            public IServiceProvider CreateServiceProvider(IContainer container)
-            {
-                return container.GetInstance<IServiceProvider>();
+                return new Container(registry).GetInstance<IServiceProvider>();
             }
         }
     }

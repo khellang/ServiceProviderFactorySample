@@ -14,12 +14,9 @@ namespace ServiceProviderFactorySample
             // Add services here that have extension methods on IServiceCollection
         }
 
-        public void ConfigureContainer(IContainer container)
+        public void ConfigureContainer(Registry registry)
         {
-            container.Configure(config =>
-            {
-                config.For<IFoo>().Use<Foo>().SetLifecycleTo<SingletonLifecycle>();
-            });
+            registry.For<IFoo>().Use<Foo>().SetLifecycleTo<SingletonLifecycle>();
         }
 
         public void Configure(IApplicationBuilder app, Lazy<IFoo> foo)
